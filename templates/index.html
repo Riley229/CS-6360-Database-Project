@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Match Predictor</title>
+</head>
+<body>
+    <h2>Enter Match Details</h2>
+    <form id="predictionForm">
+        <label for="home_team">Home Team:</label><br>
+        <input type="text" id="home_team" name="home_team"><br>
+        <label for="away_team">Away Team:</label><br>
+        <input type="text" id="away_team" name="away_team"><br>
+        <input type="submit" value="Predict">
+    </form>
+
+    <h3>Prediction Results:</h3>
+    <div id="result"></div>
+
+    <script>
+        function checkResults(task_id) {
+            fetch('/get-results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'task_id=' + encodeURIComponent(task_id)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'complete') {
+                    var result = 'Predicted Home Goals: ' + data.data['Predicted Home Goals'] +
+                                ', Predicted Away Goals: ' + data.data['Predicted Away Goals'] +
+                                ', Match Result: ' + data.data['Match Result'];
+                    document.getElementById('result').innerHTML = result;
+                } else if (data.status === 'pending') {
+                    setTimeout(() => checkResults(task_id), 2000); // Check again after 2 seconds
+                } else if (data.status === 'error') {
+                    document.getElementById('result').innerHTML = 'Error: ' + data.error;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'Error occurred';
+            });
+        }
+
+        document.getElementById('predictionForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/start-predict', {
+                method: 'POST',
+                body: new FormData(document.getElementById('predictionForm'))
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 'Processing...';
+                checkResults(data.task_id);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'Error occurred';
+            });
+        };
+    </script>
+</body>
+</html>
