@@ -1,6 +1,5 @@
 import pandas as pd
 from datetime import datetime
-from src.scrapers.reddit_scraper import search_reddit
 from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
 import tensorflow as tf
 import numpy as np

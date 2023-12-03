@@ -4,3 +4,12 @@ fake_useragent
 lxml
 requests
 transformers
+redis
+pymongo
+pandas
+tensorflow
+joblib
+flask
+xgboost
+sklearn
+scikit-learn

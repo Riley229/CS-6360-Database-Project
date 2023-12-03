@@ -3,11 +3,11 @@ from threading import Thread
 import time
 
 # Import your utility functions
-from src.utils.utilCode import get_reddit_data_for_team, extract_comments_and_scores
 from src.utils.utilCode import batch_predict, calculate_sentiment_scores
 from src.utils.utilCode import load_model, load_scaler, predict_match_result
 from src.utils.utilCode import get_match_odds, oddsScrapper
 from src.utils.utilCode import normalize_score
+from src.DB_Integration import get_reddit_data_for_team ,extract_data_from_mongo
 from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
 from datetime import datetime
 import pandas as pd
@@ -29,13 +29,16 @@ tasks = {}
 
 def long_running_task(home_team, away_team, task_id):
     try:
-        # Fetch Reddit data for both teams
-        home_team_data = get_reddit_data_for_team(home_team)
-        away_team_data = get_reddit_data_for_team(away_team)
+        # process and store reddit data for both teams
+        get_reddit_data_for_team(home_team,'home')
+        get_reddit_data_for_team(away_team,'away')
 
-        # Extracting comment bodies 
-        comment_bodies_Home, _ = extract_comments_and_scores(home_team_data)
-        comment_bodies_Away, _ = extract_comments_and_scores(away_team_data)
+        # get data from Database
+        comment_bodies_Home, _ = extract_data_from_mongo('home')
+        comment_bodies_Away, _ = extract_data_from_mongo('away')
+
+        print(comment_bodies_Away,comment_bodies_Home)
+        # exit(0)
 
         # Sentiment Analysis
         home_team_sentiments = batch_predict(comment_bodies_Home, tokenizer, sentiment_model)
