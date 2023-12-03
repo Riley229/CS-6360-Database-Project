@@ -69,6 +69,7 @@
                                 ', Match Result: ' + data.data['Match Result'];
                     document.getElementById('result').innerHTML = result;
                 } else if (data.status === 'pending') {
+                    document.getElementById('result').innerHTML = data.message + '...';
                     setTimeout(() => checkResults(task_id), 2000); // Check again after 2 seconds
                 } else if (data.status === 'error') {
                     document.getElementById('result').innerHTML = 'Error: ' + data.error;

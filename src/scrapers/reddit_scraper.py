@@ -1,12 +1,13 @@
 from bs4 import BeautifulSoup
 import requests
 from fake_useragent import UserAgent
+from threading import Thread
 
 HEADERS = {'User-Agent': UserAgent().chrome}
 REDDIT_URL = 'https://old.reddit.com/'
 
 
-def search_reddit(term, subreddit):
+def search_reddit(term, subreddit, max_post_count):
   query = term.replace(' ', '+')
   page = None
   if subreddit == None:
@@ -15,11 +16,18 @@ def search_reddit(term, subreddit):
     page = requests.get(REDDIT_URL+'r/'+subreddit+'/search', params='q='+query+'&restrict_sr=on', headers=HEADERS)
   links = post_links(BeautifulSoup(page.text, 'lxml'))
 
+  threads = list()
   posts = list()
-  for link in links:
-    print('Fetching data from ' + link)
-    post_page = requests.get(link, params='limit=500', headers=HEADERS)
-    posts.append(post_info(BeautifulSoup(post_page.text, 'lxml'), link))
+  for i, link in enumerate(links):
+    thread = Thread(target=process_post, args=(link, posts))
+    thread.start()
+    threads.append(thread)
+
+    if (i + 1) >= max_post_count:
+      break
+
+  for thread in threads:
+    thread.join()
 
   return {
     'term': term,
@@ -28,6 +36,10 @@ def search_reddit(term, subreddit):
     'posts': posts,
   }
 
+def process_post(link, posts):
+  print(f'Processing {link}')
+  post_page = requests.get(link, params='limit=500', headers=HEADERS)
+  posts.append(post_info(BeautifulSoup(post_page.text, 'lxml'), link))
 
 def post_links(soup):
   links = list()

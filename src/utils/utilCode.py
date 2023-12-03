@@ -75,7 +75,7 @@ def get_match_odds(df, home_team, away_team):
 # Reddit Data team util function
 def get_reddit_data_for_team(team_name):
     # team_name = team_name + " FC"
-    reddit_data = search_reddit(team_name, None)
+    reddit_data = search_reddit(team_name, None, 10)
     return reddit_data
 
 # Extracting Reddit Data to required form
@@ -90,7 +90,7 @@ def extract_comments_and_scores(reddit_data):
                 comment_bodies.append(comment_body)
                 comment_scores.append(comment.get('score', 0))
 
-    print(f"Extracted {len(comment_bodies)} comments")
+    print(f"Extracted {len(comment_bodies)} comments from query '{reddit_data.get('term')}'")
 
     return comment_bodies, comment_scores
 
@@ -109,9 +109,8 @@ def batch_predict(texts, tokenizer, model, batch_size=1000):
 
 
 # Calculating overall positive, negative, neutral sentiments scores 
-def calculate_sentiment_scores(sentiments, start_date):
+def calculate_sentiment_scores(sentiments):
     # Adjusted function to work with sentiment predictions directly.
-    end_date = start_date - pd.Timedelta(days=7)
     positive_sum = neutral_sum = negative_sum = 0
 
     for sentiment_score in sentiments:
@@ -130,7 +129,6 @@ def perform_sentiment_analysis(team_name, start_date):
 
 # Function to normalize sentiments Score
 def normalize_score(scores):
-    min_score = min(scores)
     max_score = max(scores)
     # return [(score - min_score) / (max_score - min_score) for score in scores]
     return [score/max_score for score in scores]
