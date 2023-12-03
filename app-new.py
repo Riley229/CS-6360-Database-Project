@@ -46,10 +46,10 @@ def long_running_task(home_team, away_team, task_id):
 
       # Sentiment Analysis
       tasks[task_id] = {'status': 'pending', 'message': f'Analyzing {home_team} sentiment'}
-      home_team_sentiments = batch_predict(comment_bodies_home, tokenizer, sentiment_model)
+      home_team_sentiments = batch_predict(comment_bodies_Home, tokenizer, sentiment_model)
 
       tasks[task_id] = {'status': 'pending', 'message': f'Analyzing {away_team} sentiment'}
-      away_team_sentiments = batch_predict(comment_bodies_away, tokenizer, sentiment_model)
+      away_team_sentiments = batch_predict(comment_bodies_Away, tokenizer, sentiment_model)
 
 
       # Calculate normalized sentiment scores
