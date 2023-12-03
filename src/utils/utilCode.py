@@ -135,6 +135,16 @@ def normalize_score(scores):
     # return [(score - min_score) / (max_score - min_score) for score in scores]
     return [score/max_score for score in scores]
 
+# Adding weight factor based on odds 
+def weight_factor(input_df, home=False):
+    
+    if home:
+      weight = 1/input_df['AvgOdds_HomeWin'].values[0]
+    else:
+      weight = 1/input_df['AvgOdds_AwayWin'].values[0]
+  
+    return weight
+
 # Prediction function using the loaded xgboost models
 def predict_match_result(input_data, model_home, model_away, scaler):
     """
@@ -166,8 +176,8 @@ def predict_match_result(input_data, model_home, model_away, scaler):
     input_df[numerical_cols] = scaler.transform(input_df[numerical_cols])
 
     # Predict Home and Away Goals
-    predicted_home_goals = round(model_home.predict(input_df)[0])
-    predicted_away_goals = round(model_away.predict(input_df)[0])
+    predicted_home_goals = round(weight_factor(input_df, True)*model_home.predict(input_df)[0])
+    predicted_away_goals = round(weight_factor(input_df)*model_away.predict(input_df)[0])
 
 
     # Determine match result
