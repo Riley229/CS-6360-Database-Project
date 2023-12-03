@@ -1,11 +1,12 @@
 beautifulsoup4
 bs4
 fake_useragent
-flask
-joblib
 lxml
 requests
-scikit-learn
-tensorflow
 transformers
-xgboost
+redis
+pymongo
+pandas
+tensorflow
+joblib
+flask

@@ -1,14 +1,17 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from threading import Thread
+import time
 
 # Import your utility functions
-from src.utils.utilCode import get_reddit_data_for_team, extract_comments_and_scores
 from src.utils.utilCode import batch_predict, calculate_sentiment_scores
 from src.utils.utilCode import load_model, load_scaler, predict_match_result
 from src.utils.utilCode import get_match_odds, oddsScrapper
 from src.utils.utilCode import normalize_score
+from src.DB_Integration import get_reddit_data_for_team ,extract_data_from_mongo
 from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
 from datetime import datetime
+
+import pandas as pd
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  
@@ -27,14 +30,19 @@ tasks = {}
 
 def long_running_task(home_team, away_team, task_id):
     try:
-        # Fetch Reddit data for both teams and extract comment bodies
-        tasks[task_id] = {'status': 'pending', 'message': f'Scraping {home_team} social media posts'}
-        home_team_data = get_reddit_data_for_team(home_team)
-        comment_bodies_home, _ = extract_comments_and_scores(home_team_data)
+		# process and store reddit data for both teams
+		tasks[task_id] = {'status': 'pending', 'message': f'Scraping {home_team} social media posts'}
+		get_reddit_data_for_team(away_team,'home')
 
-        tasks[task_id] = {'status': 'pending', 'message': f'Scraping {away_team} social media posts'}
-        away_team_data = get_reddit_data_for_team(away_team)
-        comment_bodies_away, _ = extract_comments_and_scores(away_team_data)
+		tasks[task_id] = {'status': 'pending', 'message': f'Scraping {away_team} social media posts'}
+		get_reddit_data_for_team(away_team,'away')
+
+        # get data from Database
+        comment_bodies_Home, _ = extract_data_from_mongo('home')
+        comment_bodies_Away, _ = extract_data_from_mongo('away')
+
+        print(comment_bodies_Away,comment_bodies_Home)
+        # exit(0)
 
         # Sentiment Analysis
         tasks[task_id] = {'status': 'pending', 'message': f'Analyzing {home_team} sentiment'}
