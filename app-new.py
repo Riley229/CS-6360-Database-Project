@@ -30,67 +30,67 @@ tasks = {}
 
 def long_running_task(home_team, away_team, task_id):
     try:
-		# process and store reddit data for both teams
-		tasks[task_id] = {'status': 'pending', 'message': f'Scraping {home_team} social media posts'}
-		get_reddit_data_for_team(away_team,'home')
+      # process and store reddit data for both teams
+      tasks[task_id] = {'status': 'pending', 'message': f'Scraping {home_team} social media posts'}
+      get_reddit_data_for_team(away_team,'home')
 
-		tasks[task_id] = {'status': 'pending', 'message': f'Scraping {away_team} social media posts'}
-		get_reddit_data_for_team(away_team,'away')
+      tasks[task_id] = {'status': 'pending', 'message': f'Scraping {away_team} social media posts'}
+      get_reddit_data_for_team(away_team,'away')
 
-        # get data from Database
-        comment_bodies_Home, _ = extract_data_from_mongo('home')
-        comment_bodies_Away, _ = extract_data_from_mongo('away')
+      # get data from Database
+      comment_bodies_Home, _ = extract_data_from_mongo('home')
+      comment_bodies_Away, _ = extract_data_from_mongo('away')
 
-        print(comment_bodies_Away,comment_bodies_Home)
-        # exit(0)
+      print(comment_bodies_Away,comment_bodies_Home)
+      # exit(0)
 
-        # Sentiment Analysis
-        tasks[task_id] = {'status': 'pending', 'message': f'Analyzing {home_team} sentiment'}
-        home_team_sentiments = batch_predict(comment_bodies_home, tokenizer, sentiment_model)
+      # Sentiment Analysis
+      tasks[task_id] = {'status': 'pending', 'message': f'Analyzing {home_team} sentiment'}
+      home_team_sentiments = batch_predict(comment_bodies_Home, tokenizer, sentiment_model)
 
-        tasks[task_id] = {'status': 'pending', 'message': f'Analyzing {away_team} sentiment'}
-        away_team_sentiments = batch_predict(comment_bodies_away, tokenizer, sentiment_model)
+      tasks[task_id] = {'status': 'pending', 'message': f'Analyzing {away_team} sentiment'}
+      away_team_sentiments = batch_predict(comment_bodies_Away, tokenizer, sentiment_model)
 
-        # Calculate normalized sentiment scores
-        tasks[task_id] = {'status': 'pending', 'message': f'Calculating {home_team} sentiment'}
-        home_team_scores = calculate_sentiment_scores(home_team_sentiments)
-        home_team_scores = normalize_score(home_team_scores)
 
-        tasks[task_id] = {'status': 'pending', 'message': f'Calculating {away_team} sentiment'}
-        away_team_scores = calculate_sentiment_scores(away_team_sentiments)
-        away_team_scores = normalize_score(away_team_scores)
+      # Calculate normalized sentiment scores
+      tasks[task_id] = {'status': 'pending', 'message': f'Calculating {home_team} sentiment'}
+      home_team_scores = calculate_sentiment_scores(home_team_sentiments)
+      home_team_scores = normalize_score(home_team_scores)
 
-        # Fetch match odds
-        tasks[task_id] = {'status': 'pending', 'message': 'Scraping betting odds'}
-        odd_dict = get_match_odds(oddsScrapper(), home_team, away_team)
+      tasks[task_id] = {'status': 'pending', 'message': f'Calculating {away_team} sentiment'}
+      away_team_scores = calculate_sentiment_scores(away_team_sentiments)
+      away_team_scores = normalize_score(away_team_scores)
 
-        # Prepare input data for prediction
-        match_data = {
-            'Home': home_team,
-            'Away': away_team,
-            'HomeTeam_PositiveSentiment': home_team_scores[0],
-            'HomeTeam_NeutralSentiment': home_team_scores[1],
-            'HomeTeam_NegativeSentiment': home_team_scores[2],
-            'AwayTeam_PositiveSentiment': away_team_scores[0],
-            'AwayTeam_NeutralSentiment': away_team_scores[1],
-            'AwayTeam_NegativeSentiment': away_team_scores[2],
-            'AvgOdds_HomeWin': float(odd_dict['AvgOdds_HomeWin']),
-            'AvgOdds_Draw': float(odd_dict['AvgOdds_Draw']),
-            'AvgOdds_AwayWin': float(odd_dict['AvgOdds_AwayWin'])
-        }
-        
-        print(match_data)
+      # Fetch match odds
+      tasks[task_id] = {'status': 'pending', 'message': 'Scraping betting odds'}
+      odd_dict = get_match_odds(oddsScrapper(), home_team, away_team)
 
-        # Prediction
-        tasks[task_id] = {'status': 'pending', 'message': 'Predicting match outcome'}
-        predictions = predict_match_result(match_data, model_home, model_away, scaler)
+      # Prepare input data for prediction
+      match_data = {
+          'Home': home_team,
+          'Away': away_team,
+          'HomeTeam_PositiveSentiment': home_team_scores[0],
+          'HomeTeam_NeutralSentiment': home_team_scores[1],
+          'HomeTeam_NegativeSentiment': home_team_scores[2],
+          'AwayTeam_PositiveSentiment': away_team_scores[0],
+          'AwayTeam_NeutralSentiment': away_team_scores[1],
+          'AwayTeam_NegativeSentiment': away_team_scores[2],
+          'AvgOdds_HomeWin': float(odd_dict['AvgOdds_HomeWin']),
+          'AvgOdds_Draw': float(odd_dict['AvgOdds_Draw']),
+          'AvgOdds_AwayWin': float(odd_dict['AvgOdds_AwayWin'])
+      }
 
-        # Store the results in the session
-        tasks[task_id] = {'status': 'complete', 'data': predictions}
+      print(match_data)
+
+      # Prediction
+      tasks[task_id] = {'status': 'pending', 'message': 'Predicting match outcome'}
+      predictions = predict_match_result(match_data, model_home, model_away, scaler)
+
+      # Store the results in the session
+      tasks[task_id] = {'status': 'complete', 'data': predictions}
     except Exception as e:
-        tasks[task_id] = {'status': 'error', 'error': str(e)}
-        print(e.with_traceback())
-
+      tasks[task_id] = {'status': 'error', 'error': str(e)}
+      print(e.with_traceback())
 @app.route('/')
 def index():
     return render_template('index.html')

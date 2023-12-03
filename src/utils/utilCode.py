@@ -44,7 +44,7 @@ def oddsScrapper():
 
   # Create a DataFrame
   df = pd.DataFrame(data)
-  return df
+  return df
 
 # Specific Match odds extraction
 def get_match_odds(df, home_team, away_team):

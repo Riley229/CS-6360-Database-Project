@@ -7,7 +7,7 @@ from src.scrapers.reddit_scraper import search_reddit
 redis_host = 'redis-19598.c274.us-east-1-3.ec2.cloud.redislabs.com'  
 redis_port = 19598  
 redis_password = 'TA5BGHTTiJytnI3bFTcIjYnumPLA13JW'  
-redis_client = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
+redis_client = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True, )
 
 
 #Mongo data
