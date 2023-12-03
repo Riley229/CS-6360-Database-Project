@@ -10,6 +10,3 @@ pandas
 tensorflow
 joblib
 flask
-xgboost
-sklearn
-scikit-learn
