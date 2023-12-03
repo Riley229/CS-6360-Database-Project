@@ -2,6 +2,7 @@ import redis
 from pymongo import MongoClient, ASCENDING
 from src.scrapers.reddit_scraper import search_reddit
 
+
 #Redis data
 redis_host = 'redis-19598.c274.us-east-1-3.ec2.cloud.redislabs.com'  
 redis_port = 19598  
@@ -10,18 +11,21 @@ redis_client = redis.StrictRedis(host=redis_host, port=redis_port, password=redi
 
 
 #Mongo data
-mongo_uri = "mongodb+srv://common_user:SimplePassword@jallu.idz53kd.mongodb.net/?retryWrites=true&w=majority"
+mongo_uri = "mongodb+srv://scrapper:VeryDifficultPassword@jallu.idz53kd.mongodb.net/?retryWrites=true&w=majority"
 mongo_client = MongoClient(mongo_uri)
 database_name = 'jallu'
+
 
 #Clear any pre-existing data on redis
 def clear_redis_data(redis_client):
     redis_client.flushall()
 
+
 #Clear pre-existing home or away team from mongodb
 def clear_mongodb_collection(mongo_client, collection_name):
     if collection_name in mongo_client.list_database_names():
         mongo_client[collection_name].drop()
+
 
 # Scrape data from redit and push it to mongodb
 def get_reddit_data_for_team(team_name, group):
@@ -35,7 +39,8 @@ def get_reddit_data_for_team(team_name, group):
                 comment_bodies.append(comment_body)
                 comment_scores.append(comment.get('score', 0))
 
-        dump_data_to_redis_and_mongodb(comment_bodies, comment_scores, group)
+    dump_data_to_redis_and_mongodb(comment_bodies, comment_scores, group)
+
 
 #Send redit to mongo through Redis
 def dump_data_to_redis_and_mongodb(bodies,scores,group):
@@ -46,17 +51,19 @@ def dump_data_to_redis_and_mongodb(bodies,scores,group):
     else:
         collection_name='away'
 
-    clear_redis_data(redis_client)
-    clear_mongodb_collection(mongo_client, collection_name)
-                
-    push_lists_to_redis(bodies, scores, redis_client);
+    push_lists_to_redis(bodies, scores, redis_client)
     transfer_from_redis_to_mongo(redis_client, mongo_client, collection_name)
+
 
 #Send the processed lists to Redis
 def push_lists_to_redis(list1, list2, redis_client):
     clear_redis_data(redis_client)
-    redis_client.lpush("comment_bodies", *list1)
-    redis_client.lpush("comment_scores", *list2)
+    list1_filtered = [item if item is not None else 'None' for item in list1]
+    list2_filtered = [item if item is not None else 'None' for item in list2]
+
+    redis_client.lpush("comment_bodies", *list1_filtered)
+    redis_client.lpush("comment_scores", *list2_filtered)
+
     
 #Send the processed lists from Redis to MongoDB
 def transfer_from_redis_to_mongo(redis_client, mongo_client, collection):
@@ -67,9 +74,10 @@ def transfer_from_redis_to_mongo(redis_client, mongo_client, collection):
     list2_from_redis = redis_client.lrange("comment_scores", 0, -1)
 
     db = mongo_client[database_name]
-    collection = db["collection_name"]
+    collection = db[collection]
     data_to_insert = {"comment_bodies": list1_from_redis, "comment_scores": list2_from_redis}
     collection.insert_one(data_to_insert)
+
 
 #Querying the data on MongoDB
 def extract_data_from_mongo(collection_name):
