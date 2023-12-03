@@ -26,23 +26,25 @@ def oddsScrapper():
   # Find the correct table using the provided class
   table_matches = soup.find('table', {'class': 'table-main table-main--leaguefixtures h-mb15'})
   rows = table_matches.find_all('tr') if table_matches else []
-
   data = []
   # Iterate over each row except for the header row
   for row in rows[1:]:
-      cols = row.find_all('td')
-      match_info = {
-          'Teams': cols[1].get_text(strip=True),
-          '1': cols[5].button['data-odd'],
-          'X': cols[6].button['data-odd'],
-          '2': cols[7].button['data-odd'],
-          'Date': cols[8].get_text(strip=True)
-      }
-      data.append(match_info)
+      try:
+        cols = row.find_all('td')
+        match_info = {
+            'Teams': cols[1].get_text(strip=True),
+            '1': cols[5].button['data-odd'],
+            'X': cols[6].button['data-odd'],
+            '2': cols[7].button['data-odd'],
+            'Date': cols[8].get_text(strip=True)
+        }
+        data.append(match_info)
+      except:
+        continue
 
   # Create a DataFrame
   df = pd.DataFrame(data)
-  return df
+  return df
 
 # Specific Match odds extraction
 def get_match_odds(df, home_team, away_team):
