@@ -29,7 +29,7 @@ def clear_mongodb_collection(mongo_client, collection_name):
 
 # Scrape data from redit and push it to mongodb
 def get_reddit_data_for_team(team_name, group):
-    reddit_data = search_reddit(team_name, None)
+    reddit_data = search_reddit(team_name, None, 10)
     comment_bodies = []
     comment_scores = []
 
